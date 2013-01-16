@@ -64,7 +64,7 @@ class Prey(Cell):
 
 class World(Thread):
     '''Constants'''
-    N = 10
+    N = 14
     N_HUNT = 4
     N_PREY = 2
 
