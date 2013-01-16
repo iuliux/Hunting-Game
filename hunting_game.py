@@ -160,7 +160,7 @@ def iterate():
         # time.sleep(1)
 
 
-class AjaxApp(object):
+class HuntingGameApp(object):
     @cherrypy.expose
     def index(self):
         return open(os.path.join(MEDIA_DIR, u'index.html'))
@@ -175,5 +175,5 @@ class AjaxApp(object):
 Monitor(cherrypy.engine, iterate, frequency=1).subscribe()
 
 cherrypy.config.update({'server.socket_port': 4040})
-cherrypy.tree.mount(AjaxApp(), '/', config=config)
+cherrypy.tree.mount(HuntingGameApp(), '/', config=config)
 cherrypy.engine.start()
