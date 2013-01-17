@@ -139,12 +139,29 @@ class World(Thread):
                 return False
         return True
 
+    def prey_trapped(self, p):
+        neighs = [self.adjacent_cell(p.x, p.y, 0),
+                    self.adjacent_cell(p.x, p.y, 1),
+                    self.adjacent_cell(p.x, p.y, 2),
+                    self.adjacent_cell(p.x, p.y, 3)]
+        neighs = [x for x in neighs if x]
+
+        for i in self.hunters:
+            if (i.x, i.y) in neighs:
+                neighs.remove((i.x, i.y))
+
+        if not neighs:
+            return True
+        return False
+
 
 world = World()
 
 
 def iterate():
     print "ENTERS"
+
+    # Prey movement
     for i in world.prey:
         # print '   ', i
         direction = int(random.uniform(0, 4))
@@ -155,6 +172,51 @@ def iterate():
             direction = int(random.uniform(0, 4))
             new_pos = world.adjacent_cell(i.x, i.y, direction)
         i.move(direction)
+
+    # Hunters movement
+    for i in world.hunters:
+        scores = [0, 0, 0, 0]
+        # Weak rejection force from other hunters
+        for j in world.hunters:
+            if i==j:
+                continue
+            # Vertical
+            if j.x < i.x:
+                scores[2] += 1
+            elif j.x > i.x:
+                scores[0] += 1
+            # Horizontal
+            if j.y < i.y:
+                scores[1] += 1
+            elif j.y > i.y:
+                scores[3] += 1
+        # Strong attraction force from prey
+        for j in world.prey:
+            # Vertical
+            if j.x < i.x:
+                scores[0] += 3
+            elif j.x > i.x:
+                scores[2] += 3
+            # Horizontal
+            if j.y < i.y:
+                scores[3] += 3
+            elif j.y > i.y:
+                scores[1] += 3
+        direction = scores.index(max(scores))
+        new_pos = world.adjacent_cell(i.x, i.y, direction)
+        while (not new_pos or not world.empty_cell(new_pos)) and sum(scores) != 0:
+            # Take the next biggest
+            scores[direction] = 0
+            direction = scores.index(max(scores))
+            new_pos = world.adjacent_cell(i.x, i.y, direction)
+        if sum(scores) != 0:
+            # Not blocked
+            i.move(direction)
+
+    # Check if prey dies
+    for i in world.prey:
+        if world.prey_trapped(i):
+            world.prey.remove(i)
 
     # print "HULALA"
         # time.sleep(1)
