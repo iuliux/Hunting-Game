@@ -19,3 +19,4 @@ Tools
 - [CherryPy](http://www.cherrypy.org)
 - JQuery
 - [SimpleJSON](http://code.google.com/p/simplejson)
+- kick-start by [this nice little example](http://ginstrom.com/scribbles/2010/03/07/simple-ajax-with-cherrypy-and-jquery/)
