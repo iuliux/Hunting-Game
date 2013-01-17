@@ -23,25 +23,9 @@ class Cell:
             self.x = int(random.uniform(0, table_size))
             self.y = int(random.uniform(0, table_size))
 
-    def move(self, direction):
-        ''''Direction direction is represented as int, as follows:
-            0 -> Up
-            1 -> Right
-            2 -> Down
-            3 -> Left
-        '''
-        # Up
-        if direction == 0:
-            self.x -= 1
-        # Right
-        elif direction == 1:
-            self.y += 1
-        # Down
-        elif direction == 2:
-            self.x += 1
-        # Left
-        elif direction == 3:
-            self.y -= 1
+    def move(self, pos):
+        if pos:
+            self.x, self.y = pos
 
     def __repr__(self):
         return '<td></td>'
@@ -107,6 +91,11 @@ class World(object):
     def adjacent_cell(self, x, y, direction):
         '''Returns the adjacent cell from position `(x, y)` in the direction
            `direction` if this cell is empty and withhin the map, `None` else.
+           Direction direction is represented as int, as follows:
+            0 -> Up
+            1 -> Right
+            2 -> Down
+            3 -> Left
         '''
         # Up
         if direction == 0:
@@ -139,6 +128,8 @@ class World(object):
 
     def empty_cell(self, pos):
         '''Checks if the cell is empty'''
+        if not pos:
+            return False
         for i in self.hunters:
             if (i.x, i.y) == pos:
                 return False
@@ -219,15 +210,16 @@ def iterate():
     print "ITERATION:", world.iteration_round
     # Prey movement
     for i in world.prey:
-        # print '   ', i
-        direction = int(random.uniform(0, 4))
-        # print '    DIR:', direction
-        new_pos = world.adjacent_cell(i.x, i.y, direction)
-        # print '    newPOS:', new_pos
-        while not new_pos or not world.empty_cell(new_pos):
-            direction = int(random.uniform(0, 4))
-            new_pos = world.adjacent_cell(i.x, i.y, direction)
-        i.move(direction)
+        print 'PREY'
+        alternatives = [world.adjacent_cell(i.x, i.y, d) for d in xrange(4)]
+        alternatives = [a for a in alternatives if a and world.empty_cell(a)]
+
+        if not alternatives:
+            # Stay
+            continue
+
+        new_pos = random.choice(alternatives)
+        i.move(new_pos)
 
     # Hunters movement
     for i in world.hunters:
@@ -246,7 +238,7 @@ def iterate():
             new_pos = world.adjacent_cell(i.x, i.y, direction)
         if moves and sum(scores) != 0:
             # Not completly blocked
-            i.move(direction)
+            i.move(new_pos)
 
     # Check if prey dies
     for i in world.prey:
@@ -278,6 +270,9 @@ class HuntingGameApp(object):
     @cherrypy.expose
     def set(self, hunters, prey):
         cherrypy.response.headers['Content-Type'] = 'application/json'
+        if not hunters and not prey:
+            return simplejson.dumps(dict(success='Fill both fields'))
+
         if hunters.isdigit() and prey.isdigit():
             if int(hunters) + int(prey) > World.N**2:
                 return simplejson.dumps(dict(success='Too many'))
