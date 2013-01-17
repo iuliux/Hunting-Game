@@ -8,7 +8,7 @@
         <script type="text/javascript">
             setInterval(function() {
                     // post the form values via AJAX...
-                    $.post('/submit', {}, function(data) {
+                    $.post('/update', {}, function(data) {
                             // and set the title with the result
                             $("#table").html(data['repr']) ;
                            });
@@ -17,18 +17,18 @@
         </script>
         <style type="text/css">
             td {
-                width: 20px;
-                height: 20px;
-                background: #353535;
+                width: 15px;
+                height: 15px;
+                background: #518A37;
             }
             #table {
                 color: #ffffff;
-                font-size: 11pt;
+                font-size: 8pt;
             }
         </style>
 </head>
 	<body>
-	<h1 id="title">Hunters(blue) and prey(red)</h1>
+	<h1 id="title">Hunters(<span style="color:#36679C">blue</span>) and prey(<span style="color:#B50724">red</span>)</h1>
 
         <table id="table">
         </table>

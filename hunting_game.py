@@ -49,13 +49,13 @@ class Cell:
 
 class Hunter(Cell):
     def __repr__(self):
-        return '<td style="background:#0005ff">%d</td>' % self.nr
+        return '<td style="background:#36679C">%d</td>' % self.nr
         # return '%dx%d' % (self.x, self.y)
 
 
 class Prey(Cell):
     def __repr__(self):
-        return '<td style="background:#ff0500">%d</td>' % self.nr
+        return '<td style="background:#B50724">%d</td>' % self.nr
         # return '%dx%d' % (self.x, self.y)
 
 
@@ -64,12 +64,18 @@ class World(object):
     N = 25
     N_HUNT = 12
     N_PREY = 5
+    RESPAWN_TIME = 5  # iterations
 
     def __init__(self):
         super(World, self).__init__()
         self.hunters = []
         self.prey = []
         already_filled = []
+
+        self.iteration_round = 0
+
+        # Used to respawn dead prey
+        self.respawn_countdowns = []
 
         for i in xrange(World.N_HUNT):
             self.hunters.append(Hunter(i, World.N, already_filled))
@@ -188,6 +194,11 @@ class World(object):
         print scores
         return scores
 
+    def respawn_prey(self):
+        already_filled = [(k.x, k.y) for k in self.prey+self.hunters]
+        new_idx = self.prey[-1].nr + 1
+        self.prey.append(Prey(new_idx, World.N, already_filled))
+
     def __repr__(self):
         return self.compile_representation()
 
@@ -199,7 +210,7 @@ world = World()
 
 
 def iterate():
-    print "ITERATES"
+    print "ITERATION:", world.iteration_round
     # Prey movement
     for i in world.prey:
         # print '   ', i
@@ -235,6 +246,16 @@ def iterate():
     for i in world.prey:
         if world.prey_trapped(i):
             world.prey.remove(i)
+            world.respawn_countdowns.append(World.RESPAWN_TIME)
+
+    # Rounds count
+    world.iteration_round += 1
+    # Handle respawning
+    for i in xrange(len(world.respawn_countdowns)):
+        world.respawn_countdowns[i] -= 1
+        if world.respawn_countdowns[i] <= 0:
+            world.respawn_prey()
+    world.respawn_countdowns = [a for a in world.respawn_countdowns if a > 0]
 
 
 class HuntingGameApp(object):
@@ -243,7 +264,7 @@ class HuntingGameApp(object):
         return open(os.path.join(MEDIA_DIR, u'index.html'))
 
     @cherrypy.expose
-    def submit(self):
+    def update(self):
         table = str(world)
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return simplejson.dumps(dict(repr=table))
