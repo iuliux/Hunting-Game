@@ -61,9 +61,9 @@ class Prey(Cell):
 
 class World(object):
     '''Constants'''
-    N = 14
-    N_HUNT = 4
-    N_PREY = 2
+    N = 25
+    N_HUNT = 12
+    N_PREY = 5
 
     def __init__(self):
         super(World, self).__init__()
@@ -151,34 +151,41 @@ class World(object):
             return True
         return False
 
+    def distance(self, a, b):
+        '''Computes Manhattan distance between 2 cells'''
+        return abs(a.x - b.x) + abs(a.y - b.y)
+
     def score_directions(self, h):
         scores = [0, 0, 0, 0]
         # Weak rejection force from other hunters
         for j in self.hunters:
             if h==j:
                 continue
+            dist = float(self.distance(h, j)) + 1
             # Vertical
             if j.x < h.x:
-                scores[2] += 1
+                scores[2] += 1 / (dist ** 2)
             elif j.x > h.x:
-                scores[0] += 1
+                scores[0] += 1 / (dist ** 2)
             # Horizontal
             if j.y < h.y:
-                scores[1] += 1
+                scores[1] += 1 / (dist ** 2)
             elif j.y > h.y:
-                scores[3] += 1
+                scores[3] += 1 / (dist ** 2)
         # Strong attraction force from prey
         for j in self.prey:
+            dist = float(self.distance(h, j)) + 1
             # Vertical
             if j.x < h.x:
-                scores[0] += 3
+                scores[0] += 10 / (dist ** 2)
             elif j.x > h.x:
-                scores[2] += 3
+                scores[2] += 10 / (dist ** 2)
             # Horizontal
             if j.y < h.y:
-                scores[3] += 3
+                scores[3] += 10 / (dist ** 2)
             elif j.y > h.y:
-                scores[1] += 3
+                scores[1] += 10 / (dist ** 2)
+        print scores
         return scores
 
     def __repr__(self):
