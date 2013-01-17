@@ -1,11 +1,8 @@
 import cherrypy
 from cherrypy.process.plugins import Monitor
-
 import os
 import random
 import simplejson
-import time
-from threading import Thread
 
 MEDIA_DIR = os.path.join(os.path.abspath("."), u"media")
 
@@ -62,7 +59,7 @@ class Prey(Cell):
         # return '%dx%d' % (self.x, self.y)
 
 
-class World(Thread):
+class World(object):
     '''Constants'''
     N = 14
     N_HUNT = 4
@@ -82,18 +79,13 @@ class World(Thread):
             self.prey.append(Prey(i, World.N, already_filled))
             already_filled.append((self.prey[-1].x, self.prey[-1].y))
 
-        print 'Hunters', self.hunters
-        print 'Prey', self.prey
-        print self.compile_representation()
-
     def compile_representation(self):
+        '''Produces a representation of the world as HTML table'''
         table = [[Cell() for k in xrange(World.N)] for k in xrange(World.N)]
 
         for i in self.hunters:
-            # print '>>>>>>>>>>', i.x, '-', i.y, '<<<<<<<<<<<<<'
             table[i.x][i.y] = i
         for i in self.prey:
-            # print '>>>>>>>>>>', i.x, '-', i.y, '<<<<<<<<<<<<<'
             table[i.x][i.y] = i
 
         return ''.join(['<tr>'+str(
@@ -101,6 +93,9 @@ class World(Thread):
                 )+'</tr>\n' for row in table])
 
     def adjacent_cell(self, x, y, direction):
+        '''Returns the adjacent cell from position `(x, y)` in the direction
+           `direction` if this cell is empty and withhin the map, `None` else.
+        '''
         # Up
         if direction == 0:
             new_x = x - 1
@@ -131,6 +126,7 @@ class World(Thread):
                 return (x, new_y)
 
     def empty_cell(self, pos):
+        '''Checks if the cell is empty'''
         for i in self.hunters:
             if (i.x, i.y) == pos:
                 return False
@@ -140,6 +136,7 @@ class World(Thread):
         return True
 
     def prey_trapped(self, p):
+        '''Checks if the prey p is trapped between hunters (or walls)'''
         neighs = [self.adjacent_cell(p.x, p.y, 0),
                     self.adjacent_cell(p.x, p.y, 1),
                     self.adjacent_cell(p.x, p.y, 2),
@@ -154,13 +151,48 @@ class World(Thread):
             return True
         return False
 
+    def score_directions(self, h):
+        scores = [0, 0, 0, 0]
+        # Weak rejection force from other hunters
+        for j in self.hunters:
+            if h==j:
+                continue
+            # Vertical
+            if j.x < h.x:
+                scores[2] += 1
+            elif j.x > h.x:
+                scores[0] += 1
+            # Horizontal
+            if j.y < h.y:
+                scores[1] += 1
+            elif j.y > h.y:
+                scores[3] += 1
+        # Strong attraction force from prey
+        for j in self.prey:
+            # Vertical
+            if j.x < h.x:
+                scores[0] += 3
+            elif j.x > h.x:
+                scores[2] += 3
+            # Horizontal
+            if j.y < h.y:
+                scores[3] += 3
+            elif j.y > h.y:
+                scores[1] += 3
+        return scores
+
+    def __repr__(self):
+        return self.compile_representation()
+
+    def __str__(self):
+        return self.__repr__()
+
 
 world = World()
 
 
 def iterate():
-    print "ENTERS"
-
+    print "ITERATES"
     # Prey movement
     for i in world.prey:
         # print '   ', i
@@ -175,33 +207,7 @@ def iterate():
 
     # Hunters movement
     for i in world.hunters:
-        scores = [0, 0, 0, 0]
-        # Weak rejection force from other hunters
-        for j in world.hunters:
-            if i==j:
-                continue
-            # Vertical
-            if j.x < i.x:
-                scores[2] += 1
-            elif j.x > i.x:
-                scores[0] += 1
-            # Horizontal
-            if j.y < i.y:
-                scores[1] += 1
-            elif j.y > i.y:
-                scores[3] += 1
-        # Strong attraction force from prey
-        for j in world.prey:
-            # Vertical
-            if j.x < i.x:
-                scores[0] += 3
-            elif j.x > i.x:
-                scores[2] += 3
-            # Horizontal
-            if j.y < i.y:
-                scores[3] += 3
-            elif j.y > i.y:
-                scores[1] += 3
+        scores = world.score_directions(i)
         direction = scores.index(max(scores))
         new_pos = world.adjacent_cell(i.x, i.y, direction)
         while (not new_pos or not world.empty_cell(new_pos)) and sum(scores) != 0:
@@ -218,9 +224,6 @@ def iterate():
         if world.prey_trapped(i):
             world.prey.remove(i)
 
-    # print "HULALA"
-        # time.sleep(1)
-
 
 class HuntingGameApp(object):
     @cherrypy.expose
@@ -229,7 +232,7 @@ class HuntingGameApp(object):
 
     @cherrypy.expose
     def submit(self):
-        table = world.compile_representation()
+        table = str(world)
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return simplejson.dumps(dict(repr=table))
 
