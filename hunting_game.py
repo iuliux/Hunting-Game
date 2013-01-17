@@ -284,9 +284,14 @@ class HuntingGameApp(object):
         return simplejson.dumps(dict(success='Done'))
 
 
-Monitor(cherrypy.engine, iterate, frequency=0.5).subscribe()
+Monitor(cherrypy.engine, iterate, frequency=1).subscribe()
 
-# cherrypy.config.update({'server.socket_port': 4040})
+# Hack for Heroku
+from cherrypy.process import servers
+def fake_wait_for_occupied_port(host, port): return
+servers.wait_for_occupied_port = fake_wait_for_occupied_port
+# ---------------
+
 cherrypy.config.update({'server.socket_host': '0.0.0.0',})
 cherrypy.config.update({'server.socket_port': int(os.environ.get('PORT', '4040')),})
 cherrypy.tree.mount(HuntingGameApp(), '/', config=config)
