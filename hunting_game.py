@@ -201,6 +201,7 @@ world = World()
 def iterate():
     print "ITERATES"
     # Prey movement
+    ## TODO: Hunters should be able to keep their position
     for i in world.prey:
         # print '   ', i
         direction = int(random.uniform(0, 4))
