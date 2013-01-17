@@ -6,14 +6,27 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<script type="text/javascript" src="/media/jquery-1.4.2.min.js"></script>
         <script type="text/javascript">
-            setInterval(function() {
-                    // post the form values via AJAX...
-                    $.post('/update', {}, function(data) {
-                            // and set the title with the result
-                            $("#table").html(data['repr']) ;
-                           });
-                    return false ;
-            }, 1000); // where X is your every X minutes
+            $(function() {
+                setInterval(function() {
+                        // post the form values via AJAX...
+                        $.post('/update', {}, function(data) {
+                                // and set the title with the result
+                                $("#table").html(data['repr']) ;
+                               });
+                        return false ;
+                }, 1000); // where X is your every X minutes
+
+                $('#set_new_counts').click(function() { 
+                    $.ajax({
+                        url: '/set',
+                        type: 'POST',
+                        data: {hunters: $('#hunters_no').val(), prey: $('#prey_no').val()},
+                        success: function (result) {
+                          $('#response').effect("pulsate", { mode:'show', times:1 }, 1000);
+                        }
+                    });  
+                });
+            });
         </script>
         <style type="text/css">
             td {
@@ -24,14 +37,39 @@
             #table {
                 color: #ffffff;
                 font-size: 8pt;
+                float: left;
+            }
+            p {
+                font-size: 11pt;
+            }
+            #configs {
+                width: 100px;
+                float: left;
+            }
+            input {
+                width: 95px;
+            }
+            #response {
+                display:none;
             }
         </style>
 </head>
 	<body>
 	<h1 id="title">Hunters(<span style="color:#36679C">blue</span>) and prey(<span style="color:#B50724">red</span>)</h1>
+    <p>The prey dies if it is surrounded by 4 hunters (no diagonal movement allowed).</p>
 
         <table id="table">
         </table>
+
+        <div id="configs">
+            <form>
+                <p>Hunters count:</p>
+                <input id="hunters_no" value=""/>
+                <p>Prey count:</p>
+                <input id="prey_no" value=""/>
+                <input id="set_new_counts" type="button" value="Set"/>
+                <p id="response">Done</p>
+        </div>
 
 	</body>
 </html>

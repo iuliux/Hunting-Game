@@ -77,6 +77,9 @@ class World(object):
         # Used to respawn dead prey
         self.respawn_countdowns = []
 
+        print "Spawn", World.N_HUNT, 'hunters'
+        print "Spawn", World.N_PREY, 'prey'
+
         for i in xrange(World.N_HUNT):
             self.hunters.append(Hunter(i, World.N, already_filled))
             already_filled.append((self.hunters[-1].x, self.hunters[-1].y))
@@ -84,6 +87,9 @@ class World(object):
         for i in xrange(World.N_PREY):
             self.prey.append(Prey(i, World.N, already_filled))
             already_filled.append((self.prey[-1].x, self.prey[-1].y))
+
+    def reinit(self):
+        self.__init__()
 
     def compile_representation(self):
         '''Produces a representation of the world as HTML table'''
@@ -268,6 +274,16 @@ class HuntingGameApp(object):
         table = str(world)
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return simplejson.dumps(dict(repr=table))
+
+    @cherrypy.expose
+    def set(self, hunters, prey):
+        print "SET: ", hunters, prey
+        if hunters.isdigit() and prey.isdigit():
+            World.N_HUNT = int(hunters)
+            World.N_PREY = int(prey)
+            world.reinit()
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        return ''
 
 
 Monitor(cherrypy.engine, iterate, frequency=1).subscribe()
