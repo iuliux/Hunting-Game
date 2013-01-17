@@ -201,7 +201,6 @@ world = World()
 def iterate():
     print "ITERATES"
     # Prey movement
-    ## TODO: Hunters should be able to keep their position
     for i in world.prey:
         # print '   ', i
         direction = int(random.uniform(0, 4))
@@ -215,16 +214,21 @@ def iterate():
 
     # Hunters movement
     for i in world.hunters:
+        moves = True
         scores = world.score_directions(i)
         direction = scores.index(max(scores))
         new_pos = world.adjacent_cell(i.x, i.y, direction)
         while (not new_pos or not world.empty_cell(new_pos)) and sum(scores) != 0:
+            # If the best direction is blocked, just keep current position
+            if not world.empty_cell(new_pos):
+                moves = False
+                break
             # Take the next biggest
             scores[direction] = 0
             direction = scores.index(max(scores))
             new_pos = world.adjacent_cell(i.x, i.y, direction)
-        if sum(scores) != 0:
-            # Not blocked
+        if moves and sum(scores) != 0:
+            # Not completly blocked
             i.move(direction)
 
     # Check if prey dies
