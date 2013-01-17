@@ -189,7 +189,6 @@ class World(object):
                 scores[3] += 10 / (dist ** 2)
             elif j.y > h.y:
                 scores[1] += 10 / (dist ** 2)
-        print scores
         return scores
 
     def respawn_prey(self):
@@ -209,9 +208,15 @@ world = World()
 
 def iterate():
     print "ITERATION:", world.iteration_round
+
+    # Check if prey dies
+    for i in world.prey:
+        if world.prey_trapped(i):
+            world.prey.remove(i)
+            world.respawn_countdowns.append(World.RESPAWN_TIME)
+
     # Prey movement
     for i in world.prey:
-        print 'PREY'
         alternatives = [world.adjacent_cell(i.x, i.y, d) for d in xrange(4)]
         alternatives = [a for a in alternatives if a and world.empty_cell(a)]
 
@@ -240,12 +245,6 @@ def iterate():
         if moves and sum(scores) != 0:
             # Not completly blocked
             i.move(new_pos)
-
-    # Check if prey dies
-    for i in world.prey:
-        if world.prey_trapped(i):
-            world.prey.remove(i)
-            world.respawn_countdowns.append(World.RESPAWN_TIME)
 
     # Rounds count
     world.iteration_round += 1
@@ -285,7 +284,7 @@ class HuntingGameApp(object):
         return simplejson.dumps(dict(success='Done'))
 
 
-Monitor(cherrypy.engine, iterate, frequency=1).subscribe()
+Monitor(cherrypy.engine, iterate, frequency=0.5).subscribe()
 
 cherrypy.config.update({'server.socket_port': 4040})
 cherrypy.tree.mount(HuntingGameApp(), '/', config=config)

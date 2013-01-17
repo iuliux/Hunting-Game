@@ -14,7 +14,7 @@
                                 $("#table").html(data['repr']) ;
                                });
                         return false ;
-                }, 1000); // where X is your every X minutes
+                }, 500); // where X is your every X minutes
 
                 $('#set_new_counts').click(function() { 
                     $.ajax({
@@ -58,16 +58,19 @@
 	<body>
 	<h1 id="title">Hunters(<span style="color:#36679C">blue</span>) and prey(<span style="color:#B50724">red</span>)</h1>
     <p>The prey dies if it is surrounded by 4 hunters (no diagonal movement allowed).</p>
+    <p>Each round, prey moves first (randomly)</p>
 
         <table id="table">
         </table>
 
         <div id="configs">
             <form>
-                <p>Hunters count:</p>
-                <input id="hunters_no" value=""/>
-                <p>Prey count:</p>
-                <input id="prey_no" value=""/>
+                <p>Hunters count:
+                <input id="hunters_no" value="12"/>
+                </p>
+                <p>Prey count:
+                <input id="prey_no" value="5"/>
+                </p>
                 <input id="set_new_counts" type="button" value="Set"/>
                 <p id="response">Done</p>
         </div>
