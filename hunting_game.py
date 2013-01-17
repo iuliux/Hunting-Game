@@ -277,13 +277,16 @@ class HuntingGameApp(object):
 
     @cherrypy.expose
     def set(self, hunters, prey):
-        print "SET: ", hunters, prey
+        cherrypy.response.headers['Content-Type'] = 'application/json'
         if hunters.isdigit() and prey.isdigit():
+            if int(hunters) + int(prey) > World.N**2:
+                return simplejson.dumps(dict(success='Too many'))
             World.N_HUNT = int(hunters)
             World.N_PREY = int(prey)
             world.reinit()
-        cherrypy.response.headers['Content-Type'] = 'application/json'
-        return ''
+        else:
+            return simplejson.dumps(dict(success='Invalid input'))
+        return simplejson.dumps(dict(success='Done'))
 
 
 Monitor(cherrypy.engine, iterate, frequency=1).subscribe()

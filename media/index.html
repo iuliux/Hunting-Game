@@ -22,7 +22,8 @@
                         type: 'POST',
                         data: {hunters: $('#hunters_no').val(), prey: $('#prey_no').val()},
                         success: function (result) {
-                          $('#response').effect("pulsate", { mode:'show', times:1 }, 1000);
+                            $('#response').html(result['success']);
+                            $('#response').show().delay(500).fadeOut();
                         }
                     });  
                 });
