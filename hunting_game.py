@@ -59,6 +59,7 @@ class World(object):
         self.iteration_round = 0
 
         # Used to respawn dead prey
+        self.prey_idx = World.N_PREY - 1
         self.respawn_countdowns = []
 
         print "Spawn", World.N_HUNT, 'hunters'
@@ -193,8 +194,8 @@ class World(object):
 
     def respawn_prey(self):
         already_filled = [(k.x, k.y) for k in self.prey+self.hunters]
-        new_idx = self.prey[-1].nr + 1
-        self.prey.append(Prey(new_idx, World.N, already_filled))
+        self.prey_idx += 1
+        self.prey.append(Prey(self.prey_idx, World.N, already_filled))
 
     def __repr__(self):
         return self.compile_representation()
