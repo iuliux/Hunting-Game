@@ -263,7 +263,9 @@ class HuntingGameApp(object):
 
     @cherrypy.expose
     def update(self):
-        table = str(world)
+        prey_list = [[a.nr, a.x, a.y] for a in world.prey]
+        hunt_list = [[a.nr, a.x, a.y] for a in world.hunters]
+        table = [prey_list, hunt_list]
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return simplejson.dumps(dict(repr=table))
 

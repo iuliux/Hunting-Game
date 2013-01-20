@@ -10,8 +10,20 @@
                 setInterval(function() {
                         // post the form values via AJAX...
                         $.post('/update', {}, function(data) {
-                                // and set the title with the result
-                                $("#table").html(data['repr']) ;
+				// TODO: Draw all the grid before-hand, then just overlay agents on top of it
+				//       This way, even small transition animations could be added
+				// TODO: So, #table should become #overlay and the table should be drawn on initialization
+				//       And agents would be <div>s positioned absolute
+
+                                // For each prey
+                                $.each(data["repr"][0], function(i, v){
+                                    $("#table").append("  Prey "+v[0]+" ("+v[1]+"x"+v[2]+")</br>")
+                                });
+                                // For each hunter
+                                $.each(data["repr"][1], function(i, v){
+                                    $("#table").append("  Hunter "+v[0]+" ("+v[1]+"x"+v[2]+")</br>")
+                                });
+                                // $("#table").html(data['repr']);
                                });
                         return false ;
                 }, 1000); // where X is your every X minutes
