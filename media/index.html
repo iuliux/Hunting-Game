@@ -1,56 +1,96 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-	<head>
-		<title>Hunting Game</title>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<script type="text/javascript" src="/media/jquery-1.4.2.min.js"></script>
+    <head>
+        <title>Hunting Game</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script type="text/javascript" src="/media/jquery-1.4.2.min.js"></script>
         <script type="text/javascript">
-            $(function() {
-                setInterval(function() {
-                        // post the form values via AJAX...
-                        $.post('/update', {}, function(data) {
-				// TODO: Draw all the grid before-hand, then just overlay agents on top of it
-				//       This way, even small transition animations could be added
-				// TODO: So, #table should become #overlay and the table should be drawn on initialization
-				//       And agents would be <div>s positioned absolute
+        $(function() {
+            var grid_N = 25;
 
-                                // For each prey
-                                $.each(data["repr"][0], function(i, v){
-                                    $("#table").append("  Prey "+v[0]+" ("+v[1]+"x"+v[2]+")</br>")
-                                });
-                                // For each hunter
-                                $.each(data["repr"][1], function(i, v){
-                                    $("#table").append("  Hunter "+v[0]+" ("+v[1]+"x"+v[2]+")</br>")
-                                });
-                                // $("#table").html(data['repr']);
-                               });
-                        return false ;
-                }, 1000); // where X is your every X minutes
+            setInterval(function() {
+                // post the form values via AJAX...
+                $.post('/update', {}, function(data) {
+                    // Clear board
+                    $("#overlays").html('');
 
-                $('#set_new_counts').click(function() { 
-                    $.ajax({
-                        url: '/set',
-                        type: 'POST',
-                        data: {hunters: $('#hunters_no').val(), prey: $('#prey_no').val()},
-                        success: function (result) {
-                            $('#response').html(result['success']);
-                            $('#response').show().delay(500).fadeOut();
-                        }
-                    });  
-                });
+                    // For each prey
+                    $.each(data["repr"][0], function(i, v){
+                        var x = v[1] * 19 + 1;
+                        var y = v[2] * 19 + 1;
+                        $("#overlays").append('<div class="piece prey" style="top: ' + x + 'px; left: ' + y + 'px;">' + v[0] + '</div>');
+                    });
+                    // For each hunter
+                    $.each(data["repr"][1], function(i, v){
+                        var x = v[1] * 19 + 1;
+                        var y = v[2] * 19 + 1;
+                        $("#overlays").append('<div class="piece hunter" style="top: ' + x + 'px; left: ' + y + 'px;">' + v[0] + '</div>');
+                    });
+                    // $("#table").html(data['repr']);
+                   });
+                return false ;
+            }, 1000); // where X is your every X minutes
+
+            $('#set_new_counts').click(function() { 
+                $.ajax({
+                    url: '/set',
+                    type: 'POST',
+                    data: {hunters: $('#hunters_no').val(), prey: $('#prey_no').val()},
+                    success: function (result) {
+                        $('#response').html(result['success']);
+                        $('#response').show().delay(500).fadeOut();
+                    }
+                });  
             });
+
+            // Generate board grid
+            var base_table = '';
+            for (i = 0; i < grid_N; i++){
+                base_table += '<tr>';
+                for (j = 0; j < grid_N; j++){
+                    base_table += '<td></td>';
+                }
+                base_table += '</tr>';
+            }
+            $("#table").html(base_table)
+        });
         </script>
         <style type="text/css">
             td {
-                width: 15px;
-                height: 15px;
+                width: 17px;
+                height: 17px;
+                margin: 1px;
+                padding: 0px;
                 background: #518A37;
+            }
+            .piece {
+                position: absolute;
+                width: 17px;
+                height: 17px;
+            }
+            .hunter {
+                background: #36679C;
+            }
+            .prey {
+                background: #B50724;
+            }
+
+            #board {
+                position: relative;
             }
             #table {
                 color: #ffffff;
                 font-size: 8pt;
                 float: left;
+            }
+            #overlays {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                width: 477px;
+                height: 477px;
+                border: 1px solid #cecece;
             }
             p {
                 font-size: 11pt;
@@ -58,6 +98,7 @@
             #configs {
                 width: 100px;
                 float: left;
+                margin-left: 10px;
             }
             input {
                 width: 95px;
@@ -67,13 +108,18 @@
             }
         </style>
 </head>
-	<body>
-	<h1 id="title">Hunters(<span style="color:#36679C">blue</span>) and prey(<span style="color:#B50724">red</span>)</h1>
+    <body>
+    <h1 id="title">Hunters(<span style="color:#36679C">blue</span>) and prey(<span style="color:#B50724">red</span>)</h1>
     <p>The prey dies if it is surrounded by 4 hunters (no diagonal movement allowed).</p>
     <p>Each round, prey moves first (randomly)</p>
 
-        <table id="table">
-        </table>
+        <div id="board">
+            <table id="table">
+            </table>
+
+            <div id="overlays">
+            </div>
+        </div>
 
         <div id="configs">
             <form>
@@ -87,5 +133,5 @@
                 <p id="response">Done</p>
         </div>
 
-	</body>
+    </body>
 </html>
